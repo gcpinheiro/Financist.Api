@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relação com Bills (um usuário pode ter várias contas)
+  bills     Bills[]   
+}
+
+model Bills {
+  id                 Int         @id @default(autoincrement())
+  name               String
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  value              Float
+  currentInstallment Int?
+  totalInstallment   Int?
+  remainingValue     Float
+  cardId             Int
+  categoryId         Int
+  subCategoryId      Int
+  userId             Int
+
+  // Relações
+  card               Card        @relation(fields: [cardId], references: [id])
+  category           Category    @relation(fields: [categoryId], references: [id])
+  subCategory        SubCategory @relation(fields: [subCategoryId], references: [id])
+  user               User        @relation(fields: [userId], references: [id])
+}
+
+model Card {
+  id              Int     @id @default(autoincrement())
+  name            String
+  lastFourNumbers String
+  cardFlag        String
+
+  // Relacionamento com Bills
+  bills           Bills[]
+}
+
+model Category {
+  id    Int     @id @default(autoincrement())
+  name  String
+
+  // Relacionamento com Bills
+  bills Bills[]
+}
+
+model SubCategory {
+  id    Int     @id @default(autoincrement())
+  name  String
+
+  // Relacionamento com Bills
+  bills Bills[]
+}
