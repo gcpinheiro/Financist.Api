@@ -3,13 +3,16 @@ version: '3.8'
 services:
   app:
     image: financist-api
-    build: .
+    build: 
+      context: .
     ports:
       - "3000:3000"
     networks:
       - backend
+    
     volumes:
       - .:/app
+      - /app/node_modules
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://user:password@postgres_db:5432/financist_database?schema=public
@@ -42,6 +45,20 @@ services:
       - postgres_db
     networks:
       - backend
+
+  prisma_studio:
+    image: node:20 # Pode usar uma imagem Node.js mais recente ou específica
+    container_name: prisma_studio
+    working_dir: /app
+    volumes:
+      - .:/app
+    networks:
+      - backend
+    ports:
+      - "5555:5555"
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres_db:5432/financist_database?schema=public
+    command: npx prisma studio  # Comando para iniciar o Prisma Studio
 
 volumes:
   postgres_data:

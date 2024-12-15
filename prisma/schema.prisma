@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -8,36 +9,35 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
-  email     String    @unique
+  email     String   @unique
   password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  // Relação com Bills (um usuário pode ter várias contas)
-  bills     Bills[]   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bills     Bills[]
+  cards     Card[]
 }
 
 model Bills {
-  id                 Int         @id @default(autoincrement())
+  id                 Int          @id @default(autoincrement())
   name               String
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
   value              Float
   currentInstallment Int?
   totalInstallment   Int?
-  remainingValue     Float
-  cardId             Int
-  categoryId         Int
-  subCategoryId      Int
+  remainingValue     Float?       @default(0.0)
+  cardId             Int?
+  categoryId         Int?
+  subCategoryId      Int?
   userId             Int
-
-  // Relações
-  card               Card        @relation(fields: [cardId], references: [id])
-  category           Category    @relation(fields: [categoryId], references: [id])
-  subCategory        SubCategory @relation(fields: [subCategoryId], references: [id])
-  user               User        @relation(fields: [userId], references: [id])
+  datePayment        DateTime?
+  accountType        String?
+  card               Card?        @relation(fields: [cardId], references: [id])
+  category           Category?    @relation(fields: [categoryId], references: [id])
+  subCategory        SubCategory? @relation(fields: [subCategoryId], references: [id])
+  user               User         @relation(fields: [userId], references: [id])
 }
 
 model Card {
@@ -45,23 +45,19 @@ model Card {
   name            String
   lastFourNumbers String
   cardFlag        String
-
-  // Relacionamento com Bills
+  userId          Int
   bills           Bills[]
+  user            User    @relation(fields: [userId], references: [id])
 }
 
 model Category {
   id    Int     @id @default(autoincrement())
   name  String
-
-  // Relacionamento com Bills
   bills Bills[]
 }
 
 model SubCategory {
   id    Int     @id @default(autoincrement())
   name  String
-
-  // Relacionamento com Bills
   bills Bills[]
 }
