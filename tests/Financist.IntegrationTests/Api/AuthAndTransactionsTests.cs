@@ -41,6 +41,35 @@ public sealed class AuthAndTransactionsTests : IClassFixture<CustomWebApplicatio
     }
 
     [Fact]
+    public async Task Register_ShouldCreateUser_AndReturnJwtToken()
+    {
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", new RegisterRequest(
+            "Integration Test User",
+            "register-test@financist.local",
+            "Financist123!"));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var payload = await response.Content.ReadFromJsonAsync<LoginResponse>(JsonOptions);
+
+        Assert.NotNull(payload);
+        Assert.False(string.IsNullOrWhiteSpace(payload.AccessToken));
+        Assert.Equal("Integration Test User", payload.FullName);
+        Assert.Equal("register-test@financist.local", payload.Email);
+    }
+
+    [Fact]
+    public async Task Register_ShouldReturnConflict_WhenEmailAlreadyExists()
+    {
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", new RegisterRequest(
+            "Another Dev User",
+            DevelopmentDataSeeder.DefaultEmail,
+            "Financist123!"));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetTransactions_ShouldRequireAuthentication()
     {
         var response = await _client.GetAsync("/api/v1/transactions");

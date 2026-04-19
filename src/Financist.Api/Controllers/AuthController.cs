@@ -27,4 +27,14 @@ public sealed class AuthController : ControllerBase
         var response = await _authService.LoginAsync(request, cancellationToken);
         return Ok(response);
     }
+
+    [HttpPost("register")]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<LoginResponse>> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
+    {
+        var response = await _authService.RegisterAsync(request, cancellationToken);
+        return Created(string.Empty, response);
+    }
 }

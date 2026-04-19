@@ -15,6 +15,7 @@ using Prometheus;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+const string FrontendCorsPolicy = "Frontend";
 
 builder.Host.UseSerilog((context, services, configuration) =>
 {
@@ -29,6 +30,22 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpClient();
 builder.Services.AddFinancistSwagger();
 builder.Services.AddAuthorization();
+
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+    {
+        if (corsOrigins.Length > 0)
+        {
+            policy
+                .WithOrigins(corsOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    });
+});
 
 builder.Services.AddApiVersioning(options =>
 {
@@ -77,6 +94,7 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = "swagger";
 });
 
+app.UseCors(FrontendCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 

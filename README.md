@@ -202,6 +202,7 @@ Base path:
 Implemented endpoints:
 
 - `POST /api/v1/auth/login`
+- `POST /api/v1/auth/register`
 - `GET /api/v1/transactions`
 - `POST /api/v1/transactions`
 - `GET /api/v1/categories`
@@ -224,6 +225,7 @@ Swagger:
 Authentication uses JWT bearer tokens.
 
 - Login accepts email and password.
+- Registration accepts full name, email, and password, and returns a JWT access token for the new user.
 - Protected endpoints require `Authorization: Bearer <token>`.
 - JWT settings can be configured through `appsettings` or environment variables:
   - `Jwt__Issuer`

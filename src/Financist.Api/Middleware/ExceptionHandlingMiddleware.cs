@@ -46,6 +46,12 @@ public sealed class ExceptionHandlingMiddleware
                 unauthorizedException.Message,
                 new Dictionary<string, object?>(),
                 LogLevel.Warning),
+            ConflictException conflictException => (
+                StatusCodes.Status409Conflict,
+                "Conflict",
+                conflictException.Message,
+                new Dictionary<string, object?>(),
+                LogLevel.Information),
             NotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
                 "Resource not found",
