@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: financist-postgres
+    environment:
+      POSTGRES_DB: financist
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - financist-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d financist"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.67.0
+    container_name: financist-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: financist-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=financist;Username=postgres;Password=postgres
+      Jwt__Issuer: Financist
+      Jwt__Audience: Financist.Client
+      Jwt__Key: change-this-development-jwt-key-with-at-least-32-characters
+      Jwt__ExpirationMinutes: 60
+      OpenTelemetry__Otlp__Endpoint: http://jaeger:4317
+    ports:
+      - "8080:8080"
+    volumes:
+      - financist-storage:/app/storage
+
+volumes:
+  financist-postgres-data:
+  financist-storage:
