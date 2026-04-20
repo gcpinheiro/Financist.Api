@@ -52,6 +52,12 @@ public sealed class ExceptionHandlingMiddleware
                 conflictException.Message,
                 new Dictionary<string, object?>(),
                 LogLevel.Information),
+            AiProviderException aiProviderException => (
+                StatusCodes.Status502BadGateway,
+                "AI provider error",
+                aiProviderException.Message,
+                new Dictionary<string, object?>(),
+                LogLevel.Error),
             NotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
                 "Resource not found",

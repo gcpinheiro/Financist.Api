@@ -19,8 +19,8 @@
 # Environment and local secrets
 .env
 .env.*
-appsettings.Local.json
-appsettings.*.local.json
+./src/Financist.Api/appsettings.Development.json
+**/appsettings.*
 
 # User-specific files
 *.user

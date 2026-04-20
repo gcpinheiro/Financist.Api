@@ -203,6 +203,7 @@ Implemented endpoints:
 
 - `POST /api/v1/auth/login`
 - `POST /api/v1/auth/register`
+- `POST /api/v1/ai/chat`
 - `GET /api/v1/transactions`
 - `POST /api/v1/transactions`
 - `GET /api/v1/categories`
@@ -232,6 +233,57 @@ Authentication uses JWT bearer tokens.
   - `Jwt__Audience`
   - `Jwt__Key`
   - `Jwt__ExpirationMinutes`
+
+## AI Chat
+
+The backend includes an initial DeepSeek chat integration intended as a simple foundation for future AI evolution.
+
+- Provider: `DeepSeek`
+- Scope: single prompt/response chat
+- Not included yet: RAG, streaming, chat history persistence, or provider switching at runtime
+
+### DeepSeek Configuration
+
+Configure DeepSeek through `appsettings` or environment variables:
+
+```json
+"DeepSeek": {
+  "ApiKey": "YOUR_KEY",
+  "BaseUrl": "https://api.deepseek.com",
+  "Model": "deepseek-chat"
+}
+```
+
+Environment variable equivalents:
+
+- `DeepSeek__ApiKey`
+- `DeepSeek__BaseUrl`
+- `DeepSeek__Model`
+
+### AI Chat Endpoint
+
+- `POST /api/v1/ai/chat`
+
+This endpoint requires JWT authentication.
+
+Example request:
+
+```json
+{
+  "message": "Quanto gastei esse mês?",
+  "systemPrompt": "Você é um assistente financeiro útil e direto."
+}
+```
+
+Example response:
+
+```json
+{
+  "content": "Ainda não tenho acesso direto às suas transações nesta primeira versão, mas posso ajudar você a interpretar dados ou montar uma análise se você enviar os valores."
+}
+```
+
+If `systemPrompt` is not provided, the API uses a default prompt that keeps responses in Brazilian Portuguese.
 
 ## Observability
 
