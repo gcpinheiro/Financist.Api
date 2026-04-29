@@ -18,6 +18,15 @@ public sealed class DocumentsController : ControllerBase
         _documentService = documentService;
     }
 
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<DocumentImportDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IReadOnlyList<DocumentImportDto>>> List(CancellationToken cancellationToken)
+    {
+        var response = await _documentService.ListAsync(cancellationToken);
+        return Ok(response);
+    }
+
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(DocumentImportDto), StatusCodes.Status201Created)]

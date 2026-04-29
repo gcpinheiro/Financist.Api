@@ -184,6 +184,48 @@ namespace Financist.Infrastructure.Persistence.Migrations
                     b.ToTable("document_imports", (string)null);
                 });
 
+            modelBuilder.Entity("Financist.Domain.Entities.DocumentChunk", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("ChunkIndex")
+                        .HasColumnType("integer")
+                        .HasColumnName("chunk_index");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid>("DocumentImportId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_import_id");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentImportId", "ChunkIndex")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("document_chunks", (string)null);
+                });
+
             modelBuilder.Entity("Financist.Domain.Entities.Goal", b =>
                 {
                     b.Property<Guid>("Id")
@@ -381,6 +423,25 @@ namespace Financist.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Financist.Domain.Entities.DocumentChunk", b =>
+                {
+                    b.HasOne("Financist.Domain.Entities.DocumentImport", "DocumentImport")
+                        .WithMany()
+                        .HasForeignKey("DocumentImportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Financist.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DocumentImport");
 
                     b.Navigation("User");
                 });

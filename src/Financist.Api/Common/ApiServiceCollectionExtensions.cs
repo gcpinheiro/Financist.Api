@@ -23,6 +23,7 @@ public static class ApiServiceCollectionExtensions
         services.AddScoped<ICardService, CardService>();
         services.AddScoped<IGoalService, GoalService>();
         services.AddScoped<IDocumentService, DocumentService>();
+        services.AddScoped<DocumentTextChunker>();
         services.AddScoped<IDashboardService, DashboardService>();
 
         services.AddControllers()

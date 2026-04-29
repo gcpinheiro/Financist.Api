@@ -1,4 +1,5 @@
 using Financist.Application.Abstractions.Storage;
+using Financist.Application.Common.Exceptions;
 using Microsoft.Extensions.Options;
 
 namespace Financist.Infrastructure.Services;
@@ -40,5 +41,35 @@ public sealed class LocalDocumentStorageService : IDocumentStorageService
         var relativePath = Path.Combine(relativeFolder, storedFileName).Replace("\\", "/", StringComparison.Ordinal);
 
         return new StoredDocument(storedFileName, relativePath, sizeBytes);
+    }
+
+    public Task<Stream> OpenReadAsync(
+        string storagePath,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(storagePath);
+
+        var normalizedPath = storagePath.Replace("/", Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal);
+        var absoluteRoot = Path.GetFullPath(_rootPath);
+        var absoluteFilePath = Path.GetFullPath(Path.Combine(absoluteRoot, normalizedPath));
+        var absoluteRootWithSeparator = absoluteRoot.EndsWith(Path.DirectorySeparatorChar)
+            ? absoluteRoot
+            : $"{absoluteRoot}{Path.DirectorySeparatorChar}";
+
+        if (!absoluteFilePath.StartsWith(absoluteRootWithSeparator, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["storagePath"] = ["Invalid document storage path."]
+            });
+        }
+
+        if (!File.Exists(absoluteFilePath))
+        {
+            throw new NotFoundException("Stored document was not found.");
+        }
+
+        Stream stream = File.OpenRead(absoluteFilePath);
+        return Task.FromResult(stream);
     }
 }

@@ -16,15 +16,18 @@ public sealed class DeepSeekService : IAIService
     private readonly HttpClient _httpClient;
     private readonly ILogger<DeepSeekService> _logger;
     private readonly DeepSeekOptions _options;
+    private readonly IRagContextService _ragContextService;
 
     public DeepSeekService(
         HttpClient httpClient,
         IOptions<DeepSeekOptions> options,
-        ILogger<DeepSeekService> logger)
+        ILogger<DeepSeekService> logger,
+        IRagContextService ragContextService)
     {
         _httpClient = httpClient;
         _logger = logger;
         _options = options.Value;
+        _ragContextService = ragContextService;
     }
 
     public async Task<ChatResponseDto> SendMessageAsync(
@@ -34,7 +37,8 @@ public sealed class DeepSeekService : IAIService
         EnsureConfigured();
 
         var userMessage = request.Message.Trim();
-        var systemPrompt = BuildSystemPrompt(request.SystemPrompt);
+        var ragContext = await _ragContextService.BuildContextAsync(userMessage, cancellationToken);
+        var systemPrompt = BuildSystemPrompt(request.SystemPrompt, ragContext);
         var providerRequest = new DeepSeekChatCompletionRequest(
             _options.Model,
             [
@@ -105,14 +109,26 @@ public sealed class DeepSeekService : IAIService
         }
     }
 
-    private static string BuildSystemPrompt(string? systemPrompt)
+    private static string BuildSystemPrompt(string? systemPrompt, string? ragContext)
     {
-        if (string.IsNullOrWhiteSpace(systemPrompt))
+        var prompt = string.IsNullOrWhiteSpace(systemPrompt)
+            ? DefaultSystemPrompt
+            : $"{systemPrompt.Trim()}\n\nResponda sempre em portugues do Brasil.";
+
+        if (string.IsNullOrWhiteSpace(ragContext))
         {
-            return DefaultSystemPrompt;
+            return prompt;
         }
 
-        return $"{systemPrompt.Trim()}\n\nResponda sempre em portugues do Brasil.";
+        return $"""
+            {prompt}
+
+            Use o contexto recuperado abaixo quando ele for relevante para a pergunta do usuario.
+            Se o contexto nao for suficiente, diga isso com clareza e nao invente dados de faturas.
+
+            Contexto recuperado:
+            {ragContext}
+            """;
     }
 
     private static string BuildProviderErrorMessage(System.Net.HttpStatusCode statusCode, string? providerError)

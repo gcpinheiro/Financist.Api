@@ -19,6 +19,7 @@
 # Environment and local secrets
 .env
 .env.*
+!.env.example
 ./src/Financist.Api/appsettings.Development.json
 **/appsettings.*
 

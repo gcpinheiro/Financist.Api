@@ -55,6 +55,13 @@ services:
       Jwt__Audience: Financist.Client
       Jwt__Key: change-this-development-jwt-key-with-at-least-32-characters
       Jwt__ExpirationMinutes: 60
+      DeepSeek__ApiKey: ${DEEPSEEK_API_KEY:?Set DEEPSEEK_API_KEY in Financist.Api/.env}
+      DeepSeek__BaseUrl: https://api.deepseek.com
+      DeepSeek__Model: deepseek-chat
+      Storage__DocumentsPath: /app/storage/documents
+      Rag__Enabled: true
+      Rag__MaxChunks: 5
+      Rag__MaxContextCharacters: 6000
       OpenTelemetry__Otlp__Endpoint: http://jaeger:4317
     ports:
       - "8080:8080"

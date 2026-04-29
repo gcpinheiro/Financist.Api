@@ -4,6 +4,7 @@ using Financist.Application.Abstractions.Persistence;
 using Financist.Application.Abstractions.Services;
 using Financist.Application.Abstractions.Storage;
 using Financist.Infrastructure.AI.DeepSeek;
+using Financist.Infrastructure.AI.Rag;
 using Financist.Infrastructure.Authentication;
 using Financist.Infrastructure.Observability;
 using Financist.Infrastructure.Persistence;
@@ -23,6 +24,7 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not configured.");
 
         services.Configure<DeepSeekOptions>(configuration.GetSection(DeepSeekOptions.SectionName));
+        services.Configure<RagOptions>(configuration.GetSection(RagOptions.SectionName));
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
 
@@ -48,10 +50,13 @@ public static class DependencyInjection
         services.AddScoped<IGoalRepository, GoalRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<IDocumentImportRepository, DocumentImportRepository>();
+        services.AddScoped<IDocumentChunkRepository, DocumentChunkRepository>();
         services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IDocumentStorageService, LocalDocumentStorageService>();
         services.AddSingleton<IDocumentAnalysisService, NullDocumentAnalysisService>();
+        services.AddSingleton<IDocumentTextExtractionService, PdfDocumentTextExtractionService>();
+        services.AddScoped<IRagContextService, RagContextService>();
 
         services.AddHealthChecks()
             .AddDbContextCheck<FinancistDbContext>("postgresql");

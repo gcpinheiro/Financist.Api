@@ -11,7 +11,7 @@ The backend follows a pragmatic Clean Architecture approach:
 - `Financist.Application`
   Use-case orchestration, DTOs, service contracts, repository interfaces, and application exceptions.
 - `Financist.Infrastructure`
-  EF Core persistence, PostgreSQL integration, JWT token generation, password hashing, seeding, telemetry wiring, and document storage.
+  EF Core persistence, PostgreSQL integration, JWT token generation, password hashing, seeding, telemetry wiring, document storage, PDF text extraction, and RAG context retrieval.
 - `Financist.Api`
   Controllers, middleware, dependency injection, authentication/authorization, versioning, Swagger, health checks, and metrics endpoints.
 
@@ -77,8 +77,8 @@ dotnet add src/Financist.Infrastructure/Financist.Infrastructure.csproj referenc
   The first version stays straightforward and readable while still keeping use-case logic out of controllers.
 - **Observability from day one**
   Structured logging, traces, metrics, and health checks are part of the foundation, not an afterthought.
-- **Future AI extension points**
-  Document analysis is represented behind an application contract so OCR/extraction/classification services can be introduced later without rewriting the core layers.
+- **AI/RAG extension points**
+  Document upload, text extraction, chunk storage, retrieval, and provider calls are kept behind application contracts so the AI layer can evolve without rewriting controllers or domain rules.
 
 ## Domain Model
 
@@ -234,13 +234,47 @@ Authentication uses JWT bearer tokens.
   - `Jwt__Key`
   - `Jwt__ExpirationMinutes`
 
-## AI Chat
+## AI Chat and RAG
 
-The backend includes an initial DeepSeek chat integration intended as a simple foundation for future AI evolution.
+The backend includes a DeepSeek chat integration with a RAG layer before the provider call.
 
 - Provider: `DeepSeek`
-- Scope: single prompt/response chat
-- Not included yet: RAG, streaming, chat history persistence, or provider switching at runtime
+- RAG source: indexed chunks from uploaded PDF documents
+- Retrieval: PostgreSQL full-text search with a GIN index over `document_chunks.content`
+- Not included yet: streaming, chat history persistence, OCR for scanned PDFs, embeddings/pgvector, or provider switching at runtime
+
+### RAG Flow
+
+1. `POST /api/v1/documents/upload` stores the uploaded file through `IDocumentStorageService`.
+2. `PdfDocumentTextExtractionService` extracts text from PDFs.
+3. `DocumentTextChunker` splits the text into overlapping chunks.
+4. `document_chunks` stores the chunks linked to the authenticated user and `document_import`.
+5. `RagContextService` retrieves the most relevant chunks for the user's chat message.
+6. `DeepSeekService` adds the recovered context to the system prompt before calling DeepSeek.
+
+### Storage Configuration
+
+Local document storage is configured with:
+
+```json
+"Storage": {
+  "DocumentsPath": "storage/documents"
+}
+```
+
+In Docker Compose this is mapped to the named volume `financist-storage` at `/app/storage`, and the API uses:
+
+```text
+Storage__DocumentsPath=/app/storage/documents
+```
+
+### RAG Configuration
+
+RAG is enabled by default and can be configured through environment variables:
+
+- `Rag__Enabled`
+- `Rag__MaxChunks`
+- `Rag__MaxContextCharacters`
 
 ### DeepSeek Configuration
 
@@ -331,13 +365,16 @@ Table names, relationships, money columns, and enum conversions are configured e
 The current implementation intentionally keeps AI concerns behind application contracts:
 
 - `IDocumentAnalysisService`
+- `IDocumentTextExtractionService`
+- `IRagContextService`
 
-Today this is backed by a null/placeholder implementation that acknowledges future extraction support without polluting the core model. Later iterations can add:
+Today the API indexes text-based PDFs for RAG. Later iterations can add:
 
-- OCR/document extraction
+- OCR for scanned PDFs
+- embeddings and pgvector search
 - categorization suggestions
 - transaction enrichment
 - financial insights
-- conversational assistant capabilities
+- conversational assistant memory
 
 Those additions can live in infrastructure adapters or new modules while preserving the existing domain and application boundaries.
