@@ -51,6 +51,7 @@ public static class DependencyInjection
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<IDocumentImportRepository, DocumentImportRepository>();
         services.AddScoped<IDocumentChunkRepository, DocumentChunkRepository>();
+        services.AddScoped<IDocumentTransactionCandidateRepository, DocumentTransactionCandidateRepository>();
         services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IDocumentStorageService, LocalDocumentStorageService>();

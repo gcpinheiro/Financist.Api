@@ -24,6 +24,7 @@ public static class ApiServiceCollectionExtensions
         services.AddScoped<IGoalService, GoalService>();
         services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<DocumentTextChunker>();
+        services.AddScoped<IDocumentTransactionExtractionService, DocumentTransactionExtractionService>();
         services.AddScoped<IDashboardService, DashboardService>();
 
         services.AddControllers()

@@ -27,6 +27,56 @@ public sealed class DocumentsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("{documentImportId:guid}/transaction-candidates")]
+    [ProducesResponseType(typeof(IReadOnlyList<DocumentTransactionCandidateDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<DocumentTransactionCandidateDto>>> ListTransactionCandidates(
+        Guid documentImportId,
+        CancellationToken cancellationToken)
+    {
+        var response = await _documentService.ListTransactionCandidatesAsync(documentImportId, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpPost("{documentImportId:guid}/transaction-candidates/{candidateId:guid}/import")]
+    [ProducesResponseType(typeof(DocumentTransactionCandidateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<DocumentTransactionCandidateDto>> ImportTransactionCandidate(
+        Guid documentImportId,
+        Guid candidateId,
+        [FromBody] ImportDocumentTransactionCandidateRequest request,
+        CancellationToken cancellationToken)
+    {
+        var response = await _documentService.ImportTransactionCandidateAsync(
+            documentImportId,
+            candidateId,
+            request,
+            cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpPost("{documentImportId:guid}/transaction-candidates/{candidateId:guid}/reject")]
+    [ProducesResponseType(typeof(DocumentTransactionCandidateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<DocumentTransactionCandidateDto>> RejectTransactionCandidate(
+        Guid documentImportId,
+        Guid candidateId,
+        CancellationToken cancellationToken)
+    {
+        var response = await _documentService.RejectTransactionCandidateAsync(
+            documentImportId,
+            candidateId,
+            cancellationToken);
+
+        return Ok(response);
+    }
+
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(DocumentImportDto), StatusCodes.Status201Created)]

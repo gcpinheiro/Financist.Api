@@ -26,6 +26,8 @@ public sealed class FinancistDbContext : DbContext, IUnitOfWork
 
     public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
 
+    public DbSet<DocumentTransactionCandidate> DocumentTransactionCandidates => Set<DocumentTransactionCandidate>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FinancistDbContext).Assembly);

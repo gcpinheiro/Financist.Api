@@ -18,6 +18,17 @@ public sealed class DocumentImportRepository : IDocumentImportRepository
         return _dbContext.DocumentImports.AddAsync(documentImport, cancellationToken).AsTask();
     }
 
+    public Task<DocumentImport?> GetByIdAsync(
+        Guid documentImportId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.DocumentImports
+            .FirstOrDefaultAsync(
+                documentImport => documentImport.Id == documentImportId && documentImport.UserId == userId,
+                cancellationToken);
+    }
+
     public async Task<IReadOnlyList<DocumentImport>> ListByUserAsync(
         Guid userId,
         CancellationToken cancellationToken = default)
